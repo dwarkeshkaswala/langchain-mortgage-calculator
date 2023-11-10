@@ -5,6 +5,10 @@ load_dotenv()
 
 client = OpenAI()
 
+def create_thread():
+    thread = client.beta.threads.create()
+    return thread
+
 def create_custom_assistant(name, instructions, tools=[{"type": "code_interpreter"}], model="gpt-4-1106-preview"):
     assistant = client.beta.assistants.create(
         name=name,
@@ -13,7 +17,7 @@ def create_custom_assistant(name, instructions, tools=[{"type": "code_interprete
         model=model
     )
 
-    thread = client.beta.threads.create()
+    thread = create_thread()
     return assistant, thread
 
 def msg_to_assistant(msg, assistant_id, thread_id, files):
@@ -31,6 +35,7 @@ def msg_to_assistant(msg, assistant_id, thread_id, files):
             role="user",
             content=msg
         )
+
     run = client.beta.threads.runs.create(
         thread_id=thread_id,
         assistant_id=assistant_id,
@@ -68,14 +73,12 @@ def print_history(thread_id):
 
                 chat_history.append({"role": message.role, "message": content, "type": "image_file"})
 
-            
-
     return chat_history
    
 
-def get_assistant_name(assistant_id):
+def get_assistant(assistant_id):
     assistant = client.beta.assistants.retrieve(assistant_id)
-    return assistant.name
+    return assistant
 
 def get_file_contents(uploaded_file):
     if uploaded_file is not None:
@@ -90,6 +93,14 @@ def get_file_id(file_path):
         purpose='assistants'
     )
     return file.id
+
+def list_assistants():
+    assistants = client.beta.assistants.list()
+    return assistants.data
+
+def delete_assistant(assistant_id):
+    assistant = client.beta.assistants.delete(assistant_id)
+    return assistant
 
 def main():
     # name = "Data Engineer Assistant"
